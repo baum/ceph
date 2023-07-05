@@ -1,0 +1,45 @@
+use_shaman: True
+tasks:
+- cephadm:
+- cephadm.shell:
+    host.a:
+    # get state before nvmeof deployment
+    - ceph orch status
+    - ceph orch ps
+    - ceph orch ls
+    - ceph orch host ls
+    - ceph orch device ls
+    - ceph osd lspools
+    # create pool
+    - ceph osd pool create mypool
+    - ceph osd pool application enable mypool rbd
+    - ceph osd lspools
+    - ceph osd pool ls detail
+    # deploy nvmeof with redeploy
+    - |
+      set -ex
+
+      ceph orch apply nvmeof mypool --placement="1 $(hostname)"
+      # wait for daemon to start
+      for i in $(seq 300); do
+        sleep 5
+        d=$(ceph orch ps | grep nvmeof | awk '{print $1}')
+        [ ! -z "$d" ] && break
+      done
+      echo $d
+      ceph orch daemon redeploy $d  --image quay.io/baum/nvmeof:0.0.1
+    # get some good info on the state of things post redeploy. Useful for debugging
+    - ceph orch ps --refresh
+    - ceph versions
+    - ceph -s
+    - ceph orch ls
+
+# - cephadm.wait_for_service:
+#     service: nvmeof.mypool
+
+- install:
+    extra_packages:
+      - nvme-cli
+- exec:
+    client.0:
+    - "modprobe nvme-fabrics"
