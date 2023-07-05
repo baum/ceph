@@ -1,0 +1,15 @@
+tasks:
+  - cephadm.shell:
+      host.a:
+        - ceph orch status
+        - ceph orch ps
+        - ceph orch ls
+        - ceph orch host ls
+        - ceph orch device ls
+        - ceph osd lspools
+        # Test nvmeof.mypool is in 'running' state
+        - |
+          set -ex
+          s=$(ceph orch ps  | grep nvmeof.mypool | awk '{print $4}')
+          echo $s
+          [ $s = running ]

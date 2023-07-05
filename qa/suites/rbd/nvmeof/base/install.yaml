@@ -1,0 +1,48 @@
+use_shaman: True
+tasks:
+- cephadm:
+- cephadm.shell:
+    host.a:
+    # get state before nvmeof deployment
+    - ceph orch status
+    - ceph orch ps
+    - ceph orch ls
+    - ceph orch host ls
+    - ceph orch device ls
+    - ceph osd lspools
+
+    # create pool
+    - ceph osd pool create mypool
+    - ceph osd pool application enable mypool rbd
+    - ceph osd lspools
+    - ceph osd pool ls detail
+    # deploy nvmeof
+    - |
+      set -ex
+      #
+      ceph config get mgr mgr/cephadm/container_image_nvmeof
+      ceph orch apply nvmeof mypool --placement="1 $(hostname)"
+      # Per adk: the --image flag on ceph orch redeploy is only really meant for the ceph daemons, which is why it's trying the inspect-image there. The proper way to change the image for the nvme-of daemon would be
+      # ceph orch daemon redeploy $d  --image quay.io/baum/nvmeof:0.0.1
+      #
+      #   ceph config set mgr mgr/cephadm/container_image_nvmeof <CUSTOM IMAGE>
+      #   ceph orch redeploy nvmeof.mypool # service name reported by ‘ceph orch ls’
+
+- cephadm.wait_for_service:
+    service: nvmeof.mypool
+
+- exec:
+    host.a:
+    - |
+      set -ex
+      # print nvmeof start up logs
+      s=$(systemctl list-units | grep nvmeof.mypool | awk '{print $1}')
+      PAGER=cat journalctl -u $s
+
+- install:
+    extra_packages:
+    - nvme-cli
+
+- exec:
+    client.0:
+    - "modprobe nvme-fabrics"
