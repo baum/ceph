@@ -867,7 +867,7 @@ endif(WITH_FUSE)
 
 set(ceph_nvmeof_srcs
   ceph_nvmeof.cc
-  nvmeof/Nvmeof.cc)
+  nvmeof/NVMeofGw.cc)
 add_executable(ceph-nvmeof ${ceph_nvmeof_srcs})
 add_dependencies(ceph-nvmeof ceph-common)
 target_link_libraries(ceph-nvmeof client mon os global-static ceph-common)

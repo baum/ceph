@@ -12,8 +12,8 @@
  */
 
 
-#ifndef NVMEOF_H_
-#define NVMEOF_H_
+#ifndef NVMEOFGW_H_
+#define NVMEOFGW_H_
 
 #include "auth/Auth.h"
 #include "common/async/context_pool.h"
@@ -24,8 +24,9 @@
 #include "client/Client.h"
 #include "mon/MonClient.h"
 #include "osdc/Objecter.h"
+#include "messages/MNVMeofGwMap.h"
 
-class Nvmeof : public Dispatcher,
+class NVMeofGw : public Dispatcher,
 		   public md_config_obs_t {
 protected:
   ceph::async::io_context_pool poolctx;
@@ -34,7 +35,7 @@ protected:
   Objecter objecter;
   Client client;
 
-  ceph::mutex lock = ceph::make_mutex("Nvmeof::lock");
+  ceph::mutex lock = ceph::make_mutex("NVMeofGw::lock");
   Finisher finisher;
   SafeTimer timer;
 
@@ -44,8 +45,8 @@ protected:
   void send_beacon();
 
 public:
-  Nvmeof(int argc, const char **argv);
-  ~Nvmeof() override;
+  NVMeofGw(int argc, const char **argv);
+  ~NVMeofGw() override;
 
   // Dispatcher interface
   bool ms_dispatch2(const ceph::ref_t<Message>& m) override;
@@ -62,6 +63,8 @@ public:
   void shutdown();
   int main(std::vector<const char *> args);
   void tick();
+
+  void handle_nvmeof_gw_map(ceph::ref_t<MNVMeofGwMap> m);
 };
 
 #endif

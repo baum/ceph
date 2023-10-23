@@ -24,7 +24,7 @@
 #include "common/pick_address.h"
 #include "global/global_init.h"
 
-#include "nvmeof/Nvmeof.h"
+#include "nvmeof/NVMeofGw.h"
 
 static void usage()
 {
@@ -63,13 +63,13 @@ int main(int argc, const char **argv)
   global_init_chdir(g_ceph_context);
   common_init_finish(g_ceph_context);
 
-  Nvmeof nvme(argc, argv);
-  int rc = nvme.init();
+  NVMeofGw gw(argc, argv);
+  int rc = gw.init();
   if (rc != 0) {
       std::cerr << "Error in initialization: " << cpp_strerror(rc) << std::endl;
       return rc;
   }
 
-  return nvme.main(args);
+  return gw.main(args);
 }
 

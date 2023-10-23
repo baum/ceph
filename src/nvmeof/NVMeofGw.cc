@@ -21,23 +21,21 @@
 #include "global/global_context.h"
 #include "global/signal_handler.h"
 
-/*
-#include "messages/MMgrBeacon.h"
-#include "messages/MMgrMap.h"
-*/
 
-#include "Nvmeof.h"
+#include "messages/MNVMeofGwBeacon.h"
+#include "messages/MNVMeofGwMap.h"
+#include "NVMeofGw.h"
 
 #define dout_context g_ceph_context
 #define dout_subsys ceph_subsys_mgr
 #undef dout_prefix
-#define dout_prefix *_dout << "mgr " << __func__ << " "
+#define dout_prefix *_dout << "nvmeofgw " << __func__ << " "
 
 using std::map;
 using std::string;
 using std::vector;
 
-Nvmeof::Nvmeof(int argc, const char **argv) :
+NVMeofGw::NVMeofGw(int argc, const char **argv) :
   Dispatcher(g_ceph_context),
   monc{g_ceph_context, poolctx},
   client_messenger(Messenger::create(g_ceph_context, "async", entity_name_t::CLIENT(-1), "client", getpid())),
@@ -50,9 +48,9 @@ Nvmeof::Nvmeof(int argc, const char **argv) :
 {
 }
 
-Nvmeof::~Nvmeof() = default;
+NVMeofGw::~NVMeofGw() = default;
 
-const char** Nvmeof::get_tracked_conf_keys() const
+const char** NVMeofGw::get_tracked_conf_keys() const
 {
   static const char* KEYS[] = {
     NULL
@@ -60,7 +58,7 @@ const char** Nvmeof::get_tracked_conf_keys() const
   return KEYS;
 }
 
-int Nvmeof::init()
+int NVMeofGw::init()
 {
   init_async_signal_handler();
   register_async_signal_handler(SIGHUP, sighup_handler);
@@ -85,7 +83,7 @@ int Nvmeof::init()
     return -1;
   }
 
-  monc.sub_want("nvmeofgw", 0, 0);
+  monc.sub_want("NVMeofGw", 0, 0);
 
   monc.set_want_keys(CEPH_ENTITY_TYPE_MON|CEPH_ENTITY_TYPE_OSD
       |CEPH_ENTITY_TYPE_MDS|CEPH_ENTITY_TYPE_MGR);
@@ -141,31 +139,17 @@ int Nvmeof::init()
   return 0;
 }
 
-void Nvmeof::send_beacon()
+void NVMeofGw::send_beacon()
 {
   ceph_assert(ceph_mutex_is_locked_by_me(lock));
-
-  auto addrs = entity_addrvec_t();
   dout(10) << "sending beacon as gid " << monc.get_global_id() << dendl;
 
-  /*
-  auto m = ceph::make_message<MMgrBeacon>(monc.get_fsid(),
-				 monc.get_global_id(),
-                                 g_conf()->name.get_id(),
-                                 addrs,
-                                 available,
-				 std::move(module_info),
-				 std::move(metadata),
-                                 std::move(clients),
-				 CEPH_FEATURES_ALL);
-
-
+  auto m = ceph::make_message<MNVMeofGwBeacon>();
 
   monc.send_mon_message(std::move(m));
-  */
 }
 
-void Nvmeof::tick()
+void NVMeofGw::tick()
 {
   dout(10) << __func__ << dendl;
   send_beacon();
@@ -178,7 +162,7 @@ void Nvmeof::tick()
   ));
 }
 
-void Nvmeof::shutdown()
+void NVMeofGw::shutdown()
 {
   finisher.queue(new LambdaContext([&](int) {
     std::lock_guard l(lock);
@@ -209,22 +193,25 @@ void Nvmeof::shutdown()
   finisher.stop();
 }
 
+void NVMeofGw::handle_nvmeof_gw_map(ceph::ref_t<MNVMeofGwMap> m)
+{
+  dout(10) << "handle nvmeof gw map" << dendl;
+}
 
-bool Nvmeof::ms_dispatch2(const ref_t<Message>& m)
+bool NVMeofGw::ms_dispatch2(const ref_t<Message>& m)
 {
   std::lock_guard l(lock);
   dout(10) << "got map type" << m->get_type() << dendl;
 
-/*
-  if (m->get_type() == MSG_MGR_MAP) {
-    handle_mgr_map(ref_cast<MMgrMap>(m));
+
+  if (m->get_type() == MSG_MNVMEOF_GW_MAP) {
+    handle_nvmeof_gw_map(ref_cast<MNVMeofGwMap>(m));
   }
-  */
   bool handled = false;
   return handled;
 }
 
-int Nvmeof::main(vector<const char *> args)
+int NVMeofGw::main(vector<const char *> args)
 {
   client_messenger->wait();
 
