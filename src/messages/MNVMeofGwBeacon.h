@@ -23,7 +23,7 @@
 
 typedef GW_STATES_PER_AGROUP_E SM_STATE[MAX_SUPPORTED_ANA_GROUPS];
 
-std::ostream& operator<<(std::ostream& os, const SM_STATE& value) {
+std::ostream& operator<<(std::ostream& os, const SM_STATE value) {
     os << "SM_STATE [ "
     for ( auto e: value )
     switch (e) {
@@ -38,7 +38,7 @@ std::ostream& operator<<(std::ostream& os, const SM_STATE& value) {
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const GW_AVAILABILITY_E& value) {
+std::ostream& operator<<(std::ostream& os, const GW_AVAILABILITY_E value) {
   switch (e) {
 
         case GW_AVAILABILITY_E::GW_CREATED: os << "CREATED"; break;
