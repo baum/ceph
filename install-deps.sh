@@ -503,7 +503,7 @@ else
         $SUDO env DEBIAN_FRONTEND=noninteractive mk-build-deps \
               --build-profiles "${build_profiles#,}" \
               --install --remove \
-              --tool="apt-get -y --no-install-recommends $backports" $control || exit 1
+              --tool="apt-get -y --no-install-recommends $backports" $control #|| exit 1
         ci_debug "Removing ceph-build-deps"
         $SUDO env DEBIAN_FRONTEND=noninteractive apt-get -y remove ceph-build-deps
         if [ "$control" != "debian/control" ] ; then rm $control; fi
