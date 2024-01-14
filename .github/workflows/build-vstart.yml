@@ -10,6 +10,8 @@ on:
   release:
     types:
       - created
+env:
+  FORCE_CI_DEBUG: 1
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,9 +22,12 @@ jobs:
           # git submodule update --init --recursive
           submodules: recursive
 
+      - name: Install deps
+        run: |
+          ./install-deps.sh -x
+
       - name: Build ceph vstart
         run: |
-          #./install-deps.sh
           ./do_cmake.sh
           cd build
           ninja
