@@ -1,0 +1,29 @@
+name: "Build"
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+  release:
+    types:
+      - created
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          # git submodule update --init --recursive
+          submodules: recursive
+
+      - name: Build ceph vstart
+        run: |
+          ./install-deps.sh
+          ./do_cmake.sh
+          cd build
+          ninja
+
