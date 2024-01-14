@@ -22,7 +22,7 @@ jobs:
 
       - name: Build ceph vstart
         run: |
-          ./install-deps.sh
+          #./install-deps.sh
           ./do_cmake.sh
           cd build
           ninja
