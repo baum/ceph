@@ -417,8 +417,9 @@ bool NVMeofGwMon::prepare_beacon(MonOpRequestRef op){
     if (avail == GW_AVAILABILITY_E::GW_CREATED){
         if (gw == group_gws.end()) {
            dout(4) << "Warning: GW " << gw_id << " group_key " << group_key << " was not found in the pending Created_gws "<< pending_map.Created_gws <<dendl;
+           goto false_return; // not sending ack to this beacon
         }
-        goto set_propose;
+	goto set_propose;
     }
 
     // At this stage the gw has to be in the Created_gws
