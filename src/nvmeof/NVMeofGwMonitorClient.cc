@@ -220,6 +220,7 @@ static bool get_gw_state(const char* desc, const std::map<NvmeGroupKey, NvmeGwMo
 
 void NVMeofGwMonitorClient::send_beacon()
 {
+  dout(4) << dendl;
   ceph_assert(ceph_mutex_is_locked_by_me(beacon_lock));
   gw_availability_t gw_availability = gw_availability_t::GW_CREATED;
   BeaconSubsystems subs;
@@ -227,6 +228,7 @@ void NVMeofGwMonitorClient::send_beacon()
      grpc::CreateChannel(gateway_address, gw_creds()));
   subsystems_info gw_subsystems;
   bool ok = gw_client.get_subsystems(gw_subsystems);
+  dout(4) << "get subsystem complete, ok" << ok << dendl;
   if (ok) {
     for (int i = 0; i < gw_subsystems.subsystems_size(); i++) {
       const subsystem& sub = gw_subsystems.subsystems(i);
@@ -251,7 +253,7 @@ void NVMeofGwMonitorClient::send_beacon()
   // if already got gateway state in the map
   if (get_gw_state("old map", map, group_key, name, old_gw_state))
     gw_availability = ok ? gw_availability_t::GW_AVAILABLE : gw_availability_t::GW_UNAVAILABLE;
-  dout(10) << "sending beacon as gid " << monc.get_global_id() << " availability " << (int)gw_availability <<
+  dout(4) << "sending beacon as gid " << monc.get_global_id() << " availability " << (int)gw_availability <<
     " osdmap_epoch " << osdmap_epoch << " gwmap_epoch " << gwmap_epoch << dendl;
   auto m = ceph::make_message<MNVMeofGwBeacon>(
       name,
@@ -262,6 +264,8 @@ void NVMeofGwMonitorClient::send_beacon()
       osdmap_epoch,
       gwmap_epoch);
   monc.send_mon_message(std::move(m));
+  dout(4) << "beacon sent availability " << (int)gw_availability <<
+    " osdmap_epoch " << osdmap_epoch << " gwmap_epoch " << gwmap_epoch << dendl;
 }
 
 void NVMeofGwMonitorClient::disconnect_panic()
@@ -277,7 +281,7 @@ void NVMeofGwMonitorClient::disconnect_panic()
 
 void NVMeofGwMonitorClient::tick()
 {
-  dout(10) << dendl;
+  dout(4) << dendl;
 
   disconnect_panic();
   send_beacon();
@@ -288,6 +292,7 @@ void NVMeofGwMonitorClient::tick()
           tick();
       }
   ));
+  dout(4) << "tick complete" << dendl;
 }
 
 void NVMeofGwMonitorClient::shutdown()
