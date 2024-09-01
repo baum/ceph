@@ -441,7 +441,7 @@ bool NVMeofGwMon::prepare_beacon(MonOpRequestRef op)
 {
   auto m = op->get_req<MNVMeofGwBeacon>();
 
-  dout(20) << "availability " <<  m->get_availability()
+  dout(4) << "availability " <<  m->get_availability()
 	   << " GW : " << m->get_gw_id()
 	   << " osdmap_epoch " << m->get_last_osd_epoch()
 	   << " subsystems " << m->get_subsystems() << dendl;
@@ -462,12 +462,12 @@ bool NVMeofGwMon::prepare_beacon(MonOpRequestRef op)
   if (avail == gw_availability_t::GW_CREATED) {
     if (gw == group_gws.end()) {
       gw_created = false;
-      dout(10) << "Warning: GW " << gw_id << " group_key " << group_key
+      dout(4) << "Warning: GW " << gw_id << " group_key " << group_key
 	       << " was not found in the  map.Created_gws "
 	       << map.created_gws << dendl;
       goto set_propose;
     } else {
-      dout(10) << "GW  prepares the full startup " << gw_id
+      dout(4) << "GW  prepares the full startup " << gw_id
 	       << " GW availability: "
 	       << pending_map.created_gws[group_key][gw_id].availability
 	       << dendl;
