@@ -444,6 +444,7 @@ bool NVMeofGwMon::prepare_beacon(MonOpRequestRef op)
   dout(4) << "availability " <<  m->get_availability()
 	   << " GW : " << m->get_gw_id()
 	   << " osdmap_epoch " << m->get_last_osd_epoch()
+	   << " gwmap_epoch " << m->get_last_gwmap_epoch()
 	   << " subsystems " << m->get_subsystems() << dendl;
 
   NvmeGwId gw_id = m->get_gw_id();
