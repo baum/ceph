@@ -318,7 +318,7 @@ void NVMeofGwMonitorClient::handle_nvmeof_gw_map(ceph::ref_t<MNVMeofGwMap> nmap)
   auto &new_map = nmap->get_map();
   gwmap_epoch = nmap->get_gwmap_epoch();
   auto group_key = std::make_pair(pool, group);
-  dout(10) << "handle nvmeof gw map: " << new_map << dendl;
+  dout(1) << "handle nvmeof gw map: " << new_map << dendl;
 
   NvmeGwClientState old_gw_state;
   auto got_old_gw_state = get_gw_state("old map", map, group_key, name, old_gw_state); 
@@ -330,17 +330,17 @@ void NVMeofGwMonitorClient::handle_nvmeof_gw_map(ceph::ref_t<MNVMeofGwMap> nmap)
 
   if (!got_old_gw_state) {
     if (!got_new_gw_state) {
-      dout(10) << "Can not find new gw state" << dendl;
+      dout(1) << "Can not find new gw state" << dendl;
       return;
     }
     bool set_group_id = false;
     while (!set_group_id) {
       NVMeofGwMonitorGroupClient monitor_group_client(
           grpc::CreateChannel(monitor_address, gw_creds()));
-      dout(10) << "GRPC set_group_id: " <<  new_gw_state.group_id << dendl;
+      dout(1) << "GRPC set_group_id: " <<  new_gw_state.group_id << dendl;
       set_group_id = monitor_group_client.set_group_id( new_gw_state.group_id);
       if (!set_group_id) {
-	      dout(10) << "GRPC set_group_id failed" << dendl;
+	      dout(1) << "GRPC set_group_id failed" << dendl;
 	      auto retry_timeout = g_conf().get_val<uint64_t>("mon_nvmeofgw_set_group_id_retry");
 	      usleep(retry_timeout);
       }
@@ -348,7 +348,7 @@ void NVMeofGwMonitorClient::handle_nvmeof_gw_map(ceph::ref_t<MNVMeofGwMap> nmap)
   }
 
   if (got_old_gw_state && got_new_gw_state) {
-    dout(10) << "got_old_gw_state: " << old_gw_state << "got_new_gw_state: " << new_gw_state << dendl;
+    dout(1) << "got_old_gw_state: " << old_gw_state << "got_new_gw_state: " << new_gw_state << dendl;
     // Make sure we do not get out of order state changes from the monitor
     ceph_assert(new_gw_state.gw_map_epoch >= old_gw_state.gw_map_epoch);
 
@@ -402,7 +402,7 @@ void NVMeofGwMonitorClient::handle_nvmeof_gw_map(ceph::ref_t<MNVMeofGwMap> nmap)
       }
       gs.set_state(new_agroup_state == gw_exported_states_per_group_t::GW_EXPORTED_OPTIMIZED_STATE ? OPTIMIZED : INACCESSIBLE); // Set the ANA state
       nas.mutable_states()->Add(std::move(gs));
-      dout(10) << " grpid " << (ana_grp_index + 1) << " state: " << new_gw_state << dendl;
+      dout(1) << " grpid " << (ana_grp_index + 1) << " state: " << new_gw_state << dendl;
     }
     if (nas.states_size()) ai.mutable_states()->Add(std::move(nas));
   }
@@ -415,14 +415,14 @@ void NVMeofGwMonitorClient::handle_nvmeof_gw_map(ceph::ref_t<MNVMeofGwMap> nmap)
           grpc::CreateChannel(gateway_address, gw_creds()));
       set_ana_state = gw_client.set_ana_state(ai);
       if (!set_ana_state) {
-	dout(10) << "GRPC set_ana_state failed" << dendl;
+	dout(1) << "GRPC set_ana_state failed" << dendl;
 	usleep(1000); // TODO conf option
       }
     }
     // Update latest accepted osdmap epoch, for beacons
     if (max_blocklist_epoch > osdmap_epoch) {
       osdmap_epoch = max_blocklist_epoch;
-      dout(10) << "Ready for blocklist osd map epoch: " << osdmap_epoch << dendl;
+      dout(1) << "Ready for blocklist osd map epoch: " << osdmap_epoch << dendl;
     }
   }
   map = new_map;
